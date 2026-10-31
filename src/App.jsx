@@ -24,26 +24,27 @@ function ChatHome() {
     );
 }
 
+function ProtectedRoute() {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+        return <Navigate to="/login" replace />;
+    }
+    return <ChatLayout />;
+}
+
 function App() {
     console.log(
-    "ROUTAGE",
-    window.location.pathname,
-    !!sessionStorage.getItem("token")
-);
+        "ROUTAGE",
+        window.location.pathname,
+        !!sessionStorage.getItem("token")
+    );
     return (
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                <Route
-    path="/"
-    element={
-        sessionStorage.getItem("token")
-            ? <ChatLayout />
-            : <Navigate to="/login" replace />
-    }
->
+                <Route path="/" element={<ProtectedRoute />}>
                     <Route index element={<ChatHome />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="users" element={<Navigate to="/" replace />} />

@@ -24,31 +24,62 @@ export function ChatLayout() {
 
     useEffect(() => {
         initializeBeams().catch((err) => {
-            console.error("Erreur Pusher Beams :", err);
+            console.warn("Notifications Pusher Beams non initialisées :", err);
         });
 
-        Promise.all([getRooms(), getUsersList()])
-            .then(([loadedRooms, loadedUsers]) => {
-                setRooms(loadedRooms);
-                setUsers(loadedUsers);
+        let isMounted = true;
+
+        getRooms()
+            .then((loadedRooms) => {
+                if (isMounted) setRooms(loadedRooms);
             })
             .catch((err: unknown) => {
-                console.log("Erreur 401 : retour vers login", err);
+                console.error("Erreur salons :", err);
                 if (err instanceof CustomError && err.httpStatus === 401) {
                     sessionStorage.clear();
                     navigate("/login", { replace: true });
                     return;
                 }
+                if (isMounted) {
+                    setError((prev) =>
+                        prev
+                            ? `${prev} Impossible de charger les salons.`
+                            : "Impossible de charger les salons."
+                    );
+                }
+            });
 
-                setError("Impossible de charger les salons et utilisateurs.");
+        getUsersList()
+            .then((loadedUsers) => {
+                if (isMounted) setUsers(loadedUsers);
+            })
+            .catch((err: unknown) => {
+                console.error("Erreur utilisateurs :", err);
+                if (err instanceof CustomError && err.httpStatus === 401) {
+                    sessionStorage.clear();
+                    navigate("/login", { replace: true });
+                    return;
+                }
+                if (isMounted) {
+                    setError((prev) =>
+                        prev
+                            ? `${prev} Impossible de charger les utilisateurs.`
+                            : "Impossible de charger les utilisateurs."
+                    );
+                }
             });
 
         getMyProfile()
             .then((profile) => {
+                if (!isMounted) return;
                 if (profile.username) setUsername(profile.username);
                 setAvatar(profile.avatar_url || "");
             })
             .catch((err) => console.error("Erreur profil :", err));
+
+        return () => {
+            isMounted = false;
+        };
     }, [navigate]);
 
     async function getUsersList(): Promise<PublicUser[]> {

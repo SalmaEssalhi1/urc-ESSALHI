@@ -27,7 +27,12 @@ export default async function handler(request, response) {
             });
         }
 
-        const { roomId: rawRoomId, content } = request.body ?? {};
+        const body =
+            typeof request.body === "string"
+                ? JSON.parse(request.body)
+                : (request.body ?? {});
+
+        const { roomId: rawRoomId, content } = body;
         const roomId = Number(rawRoomId);
         const senderId = Number(user.id);
 
