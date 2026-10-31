@@ -6,7 +6,17 @@ export const config = {
     runtime: 'edge',
 };
 
-const redis = Redis.fromEnv();
+const redis = new Redis({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+});
+
+console.log("Diagnostic Redis login :", {
+    urlPresent: Boolean(process.env.KV_REST_API_URL),
+    tokenPresent: Boolean(process.env.KV_REST_API_TOKEN),
+    urlLength: process.env.KV_REST_API_URL?.length ?? 0,
+    tokenLength: process.env.KV_REST_API_TOKEN?.length ?? 0,
+});
 
 export default async function handler(request) {
     try {

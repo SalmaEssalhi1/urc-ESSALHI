@@ -14,9 +14,17 @@ export default async function handler(request) {
             return unauthorizedResponse();
         }
 
-        const {rowCount, rows} = await sql`select user_id, username, TO_CHAR(last_login, 'DD/MM/YYYY HH24:MI') as last_login from users order by last_login desc`;
-        console.log("Got " + rowCount + " users");
-        if (rowCount === 0) {
+        const currentUser = connected;
+const { rowCount, rows } = await sql`
+    SELECT
+        user_id,
+        username,
+        avatar_url,
+        TO_CHAR(last_login, 'DD/MM/YYYY HH24:MI') AS last_login
+    FROM users
+    WHERE user_id <> ${currentUser.id}
+    ORDER BY last_login DESC
+`;                if (rowCount === 0) {
             /* Vercel bug doesn't allow 204 response status */
             return new Response("[]", {
                 status: 200,
