@@ -1,10 +1,16 @@
 
 import { sql } from "@vercel/postgres";
+import { Redis } from "@upstash/redis";
 import { arrayBufferToBase64, stringToArrayBuffer } from "../lib/base64";
 
 export const config = {
     runtime: "edge",
 };
+
+const redis = new Redis({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+});
 
 export default async function handler(request) {
     try {
@@ -115,10 +121,26 @@ export default async function handler(request) {
             );
         }
 
+        const newUserId = result.rows[0].user_id;
+
+        // Pré-remplir le cache Redis pour que l'utilisateur soit joignable immédiatement
+        try {
+            await redis.hset("users", {
+                [newUserId]: {
+                    id: newUserId,
+                    username: cleanUsername,
+                    email: cleanEmail,
+                    externalId: externalId,
+                },
+            });
+        } catch (redisError) {
+            console.error("Erreur mise à jour Redis à l'inscription :", redisError);
+        }
+
         return new Response(
             JSON.stringify({
                 message: "Inscription réussie.",
-                user_id: result.rows[0].user_id,
+                user_id: newUserId,
             }),
             {
                 status: 201,

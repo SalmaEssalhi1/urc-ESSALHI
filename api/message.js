@@ -1,5 +1,6 @@
 
 import crypto from "node:crypto";
+import { sql } from "@vercel/postgres";
 import { Redis } from "@upstash/redis";
 import { getConnecterUser } from "../lib/session.js";
 import PushNotifications from "@pusher/push-notifications-server";
@@ -58,10 +59,43 @@ export default async function handler(request, response) {
         }
 
         // Vérifier que le destinataire existe
-        const targetUser = await redis.hget(
+        let targetUser = await redis.hget(
             "users",
             String(recipientId)
         );
+
+        // Si l'utilisateur n'est pas trouvé dans Redis, interroger PostgreSQL
+        if (!targetUser) {
+            const { rows } = await sql`
+                SELECT user_id, username, email, external_id
+                FROM users
+                WHERE user_id = ${recipientId}
+                LIMIT 1
+            `;
+
+            if (rows.length > 0) {
+                targetUser = {
+                    id: rows[0].user_id,
+                    username: rows[0].username,
+                    email: rows[0].email,
+                    externalId: rows[0].external_id,
+                };
+
+                try {
+                    await redis.hset("users", { [recipientId]: targetUser });
+                } catch (redisError) {
+                    console.error("Erreur mise à jour Redis pour le destinataire :", redisError);
+                }
+            }
+        }
+
+        if (typeof targetUser === "string") {
+            try {
+                targetUser = JSON.parse(targetUser);
+            } catch {
+                // Conserver tel quel
+            }
+        }
 
         if (!targetUser) {
             return response.status(404).json({
