@@ -1,4 +1,5 @@
 
+import crypto from "node:crypto";
 import { sql } from "@vercel/postgres";
 import { Redis } from "@upstash/redis";
 import { getConnecterUser } from "../lib/session.js";
@@ -134,6 +135,7 @@ export default async function handler(request, response) {
         return response.status(500).json({
             code: "INTERNAL_ERROR",
             message: "Impossible d'envoyer le message dans le salon.",
+            details: error instanceof Error ? error.message : String(error),
         });
     }
 }

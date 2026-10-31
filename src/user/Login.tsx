@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "./loginApi";
 import type { Session } from "../model/common";
 import { CustomError } from "../model/CustomError";
@@ -9,10 +9,6 @@ export function Login() {
     const [session, setSession] = useState({} as Session);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-
-    if (sessionStorage.getItem("token")) {
-        return <Navigate to="/" replace />;
-    }
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
