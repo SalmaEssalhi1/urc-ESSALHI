@@ -1,5 +1,8 @@
 # UBO Relay Chat
 
+🚀 **Lien de l'application déployée :** [https://urc-essalhi-rg5x40ff9-s-essalhi.vercel.app](https://urc-essalhi-rg5x40ff9-s-essalhi.vercel.app)  
+*(Application fonctionnelle avec notifications Pusher Beams)*
+
 [Lien du cours](https://docs.google.com/presentation/d/1p-KtmWjFnfrZP-NrXgGACX2TSRNJXMdJ)
 
 ## Objectifs
